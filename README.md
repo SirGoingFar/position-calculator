@@ -1,6 +1,6 @@
 # Position Calculator
 
-Candidate Name: Akintunde Olanrewaju <eaolanrewaju@gmail.com>
+Candidate Name: Akintunde Olanrewaju, <eaolanrewaju@gmail.com>
 
 <br/>
 
