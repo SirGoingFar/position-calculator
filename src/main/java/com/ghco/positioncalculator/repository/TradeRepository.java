@@ -14,7 +14,7 @@ public interface TradeRepository {
 
     Trade save(@NonNull final Trade trade);
 
-    List<String> findAllUniquePortfolio();
+    List<String> findAllUniqueBbgCodes();
 
-    List<Trade> findAllByPortfolioAndAction(@NonNull final String portfolio, @NonNull final Trade.Action action);
+    List<Trade> findAllByBbgCodeAndAction(@NonNull final String portfolio, @NonNull final Trade.Action action);
 }

@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 @Data
 @Builder
-public class BbgCodePositionSummary {
+public class PortfolioPositionSummary {
     private final BigDecimal profit;
     private final BigDecimal loss;
 }

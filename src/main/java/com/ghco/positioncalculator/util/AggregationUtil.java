@@ -14,8 +14,8 @@ public class AggregationUtil {
         throw new IllegalStateException("Cannot instantiate AggregationUtil");
     }
 
-    public static Map<String, List<Trade>> groupByBbgCode(@NonNull final List<Trade> trades) {
-        return trades.stream().collect(groupingBy(Trade::getBbgCode));
+    public static Map<String, List<Trade>> groupByPortfolio(@NonNull final List<Trade> trades) {
+        return trades.stream().collect(groupingBy(Trade::getPortfolio));
     }
 
     public static List<Trade> filterBySide(@NonNull final List<Trade> trades, @NonNull final Trade.Side side) {

@@ -11,9 +11,7 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -60,52 +58,58 @@ class DefaultTradeService implements TradeService {
     }
 
     @Override
-    public Map<String, Map<String,BbgCodePositionSummary>> aggregateTradePosition() {
-        // 1. Get all unique portfolio
-        final List<String> uniquePortfolios = tradeRepository.findAllUniquePortfolio();
+    public Map<String, Map<String, PortfolioPositionSummary>> aggregateTradePosition() {
+        // 1. Get all unique BBGCodes
+        final List<String> uniqueBbgCodes = tradeRepository.findAllUniqueBbgCodes();
 
-        // 2. Get associated portfolio NEW trades & compose Map<Portfolio, List<Trade>>
-        final Map<String, List<Trade>> portfolioToTradeMap = new HashMap<>();
-        uniquePortfolios.forEach(portfolio -> portfolioToTradeMap.put(portfolio, tradeRepository.findAllByPortfolioAndAction(portfolio, Trade.Action.NEW)));
+        // 2. Get associated BBG Code's NEW trades & compose Map<BBGCode, List<Trade>>
+        final Map<String, List<Trade>> bbgCodeToTradeMap = new HashMap<>();
 
-        //i.e. Map<Portfolio, Map<BBGCode, PositionSummary>>
-        final Map<String, Map<String,BbgCodePositionSummary>> perPortfolioBbgCodeAggregationMap = new HashMap<>();
+        /*
+         * Only NEW action is considered here because:
+         * - trades with action AMEND has a corresponding trade with same tradeId and price
+         * - trades with action CANCEL has been cancelled and shouldn't be considered in the P&L computation
+         * */
+        uniqueBbgCodes.forEach(bbgCode -> bbgCodeToTradeMap.put(bbgCode, tradeRepository.findAllByBbgCodeAndAction(bbgCode, Trade.Action.NEW)));
 
-        //Per portfolio, compute per BBG code
-        portfolioToTradeMap.forEach((portfolio, trades) -> {
+        //i.e. Map<BBGCode, Map<Portfolio, PositionSummary>>
+        final Map<String, Map<String, PortfolioPositionSummary>> perBbgCodePerPortfolioAggregationMap = new HashMap<>();
 
-            // 1. Filter out unique BBG code
-            //i.e. Map<BBGCode, List<Trade>>
-            final Map<String, List<Trade>> bbgCodeToCorrespondingTrade = AggregationUtil.groupByBbgCode(trades);
+        //Per BGG code, compute per portfolio
+        bbgCodeToTradeMap.forEach((bbgCode, trades) -> {
 
-            final Map<String, BbgCodePositionSummary> summaryMap = new HashMap<>();
-            // 2. Split List<Trade> for each BBG code to BUY & SELL
-            bbgCodeToCorrespondingTrade.forEach((bbgCode, bbgCodeTrades) -> {
+            final Map<String, PortfolioPositionSummary> summaryMap = new HashMap<>();
+
+            // 1. Group trades by portfolio
+            //i.e. Map<Portfolio, List<Trade>>
+            final Map<String, List<Trade>> portfolioToCorrespondingTrade = AggregationUtil.groupByPortfolio(trades);
+
+            // 2. Categorize List<Trade> for each Portfolio to BUY/SELL
+            portfolioToCorrespondingTrade.forEach((portfolio, portfolioTrades) -> {
 
                 //Map<User, TotalSales>
-                final Map<String, BigDecimal> userToTotalBbgSellMap = new HashMap<>();
+                final Map<String, BigDecimal> userToTotalPortfolioSellMap = new HashMap<>();
 
                 //Map<User, TotalPurchases>
-                final Map<String, BigDecimal> userToTotalBbgBuyMap = new HashMap<>();
+                final Map<String, BigDecimal> userToTotalPortfolioBuyMap = new HashMap<>();
 
-                final List<String> uniqueUsers = bbgCodeTrades.stream().map(Trade::getUser).distinct().collect(Collectors.toList());
+                final List<String> uniqueUsers = portfolioTrades.stream().map(Trade::getUser).distinct().collect(Collectors.toList());
 
-                bbgCodeTrades.forEach(new Consumer<>() {
+                portfolioTrades.forEach(new Consumer<>() {
                     @Override
                     public void accept(Trade trade) {
                         if (trade.getSide() == Trade.Side.SELL) {
-                            addOrIncrementValue(userToTotalBbgSellMap, trade.getUser(), trade.getPrice());
+                            addOrIncrementValue(userToTotalPortfolioSellMap, trade.getUser(), trade.getPrice());
                         } else {
-                            addOrIncrementValue(userToTotalBbgBuyMap, trade.getUser(), trade.getPrice());
+                            addOrIncrementValue(userToTotalPortfolioBuyMap, trade.getUser(), trade.getPrice());
                         }
                     }
 
-                    private void addOrIncrementValue(@NonNull final Map<String, BigDecimal> aggregateMap, @NonNull final String user, @NonNull final BigDecimal price) {
-                        if (aggregateMap.containsKey(user)) {
-                            BigDecimal existingValue = aggregateMap.get(user);
-                            aggregateMap.put(user, existingValue.add(price));
+                    private void addOrIncrementValue(@NonNull final Map<String, BigDecimal> totalPriceAggregateMap, @NonNull final String user, @NonNull final BigDecimal price) {
+                        if (totalPriceAggregateMap.containsKey(user)) {
+                            totalPriceAggregateMap.put(user, totalPriceAggregateMap.get(user).add(price));
                         } else {
-                            aggregateMap.put(user, price);
+                            totalPriceAggregateMap.put(user, price);
                         }
                     }
                 });
@@ -115,31 +119,30 @@ class DefaultTradeService implements TradeService {
                 BigDecimal totalLoss = BigDecimal.ZERO;
 
                 for (String user : uniqueUsers) {
-                    BigDecimal userTotalSellPrice = userToTotalBbgSellMap.getOrDefault(user, BigDecimal.ZERO);
-                    BigDecimal userTotalBuyPrice = userToTotalBbgBuyMap.getOrDefault(user, BigDecimal.ZERO);
-                    BigDecimal bal = userTotalBuyPrice.subtract(userTotalSellPrice);
+                    BigDecimal userTotalSellPrice = userToTotalPortfolioSellMap.getOrDefault(user, BigDecimal.ZERO);
+                    BigDecimal userTotalBuyPrice = userToTotalPortfolioBuyMap.getOrDefault(user, BigDecimal.ZERO);
+                    BigDecimal diff = userTotalBuyPrice.subtract(userTotalSellPrice);
 
-                    if(bal.compareTo(BigDecimal.ZERO) < 0){
-                        totalLoss = totalLoss.add(bal.abs());
+                    if(diff.compareTo(BigDecimal.ZERO) < 0){
+                        totalLoss = totalLoss.add(diff.abs());
                     }else{
-                        totalProfit = totalProfit.add(bal.abs());
+                        totalProfit = totalProfit.add(diff.abs());
                     }
                 }
 
-                BbgCodePositionSummary summary = BbgCodePositionSummary.builder()
+                PortfolioPositionSummary summary = PortfolioPositionSummary.builder()
                         .profit(totalProfit)
                         .loss(totalLoss)
                         .build();
 
-
-                summaryMap.put(bbgCode, summary);
+                summaryMap.put(portfolio, summary);
             });
 
-            perPortfolioBbgCodeAggregationMap.put(portfolio, summaryMap);
+            perBbgCodePerPortfolioAggregationMap.put(bbgCode, summaryMap);
 
         });
 
-        return perPortfolioBbgCodeAggregationMap;
+        return perBbgCodePerPortfolioAggregationMap;
     }
 
 }

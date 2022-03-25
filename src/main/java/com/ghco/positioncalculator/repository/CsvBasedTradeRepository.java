@@ -63,16 +63,16 @@ public class CsvBasedTradeRepository implements TradeRepository {
     }
 
     @Override
-    public List<String> findAllUniquePortfolio() {
+    public List<String> findAllUniqueBbgCodes() {
         synchronized (TRADE_DATA_MONITOR_OBJECT) {
-            return allTrades.stream().map(Trade::getPortfolio).distinct().sorted().collect(Collectors.toList());
+            return allTrades.stream().map(Trade::getBbgCode).distinct().sorted().collect(Collectors.toList());
         }
     }
 
     @Override
-    public List<Trade> findAllByPortfolioAndAction(@NonNull final String portfolio, @NonNull final Trade.Action action) {
+    public List<Trade> findAllByBbgCodeAndAction(@NonNull final String bbgCode, @NonNull final Trade.Action action) {
         synchronized (TRADE_DATA_MONITOR_OBJECT) {
-            return allTrades.stream().filter(trade -> trade.getPortfolio().equals(portfolio) && trade.getAction() == action).distinct().collect(Collectors.toList());
+            return allTrades.stream().filter(trade -> trade.getBbgCode().equals(bbgCode) && trade.getAction() == action).distinct().collect(Collectors.toList());
         }
     }
 
