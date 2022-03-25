@@ -5,6 +5,7 @@ import com.ghco.positioncalculator.model.Trade;
 import com.ghco.positioncalculator.repository.TradeRepository;
 import com.ghco.positioncalculator.util.AggregationUtil;
 import lombok.NonNull;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

@@ -33,4 +33,9 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.22'
     annotationProcessor 'org.projectlombok:lombok:1.18.22'
     testImplementation 'org.springframework.boot:spring-boot-starter-test:2.6.4'
+    testImplementation 'org.junit.vintage:junit-vintage-engine'
+}
+
+test {
+    useJUnitPlatform()
 }

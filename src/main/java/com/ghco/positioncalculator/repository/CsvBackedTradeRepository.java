@@ -40,20 +40,6 @@ public class CsvBackedTradeRepository implements TradeRepository {
     }
 
     @Override
-    public List<Trade> findAllBySide(@NonNull final Trade.Side side) {
-        synchronized (TRADE_DATA_MONITOR_OBJECT) {
-            return null;
-        }
-    }
-
-    @Override
-    public List<Trade> findAllByBbgCode(@NonNull final String bbgCode) {
-        synchronized (TRADE_DATA_MONITOR_OBJECT) {
-            return null;
-        }
-    }
-
-    @Override
     public Trade save(@NonNull Trade trade) {
         synchronized (TRADE_DATA_MONITOR_OBJECT) {
             trade.setId(UUID.randomUUID().toString().replace("-", ""));
