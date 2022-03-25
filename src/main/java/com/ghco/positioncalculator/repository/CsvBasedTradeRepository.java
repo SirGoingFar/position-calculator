@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class CsvBasedTradeRepository implements TradeRepository {
 
@@ -58,6 +59,20 @@ public class CsvBasedTradeRepository implements TradeRepository {
             trade.setId(UUID.randomUUID().toString().replace("-", ""));
             allTrades.add(0, trade);
             return trade;
+        }
+    }
+
+    @Override
+    public List<String> findAllUniquePortfolio() {
+        synchronized (TRADE_DATA_MONITOR_OBJECT) {
+            return allTrades.stream().map(Trade::getPortfolio).distinct().sorted().collect(Collectors.toList());
+        }
+    }
+
+    @Override
+    public List<Trade> findAllByPortfolioAndAction(@NonNull final String portfolio, @NonNull final Trade.Action action) {
+        synchronized (TRADE_DATA_MONITOR_OBJECT) {
+            return allTrades.stream().filter(trade -> trade.getPortfolio().equals(portfolio) && trade.getAction() == action).distinct().collect(Collectors.toList());
         }
     }
 
