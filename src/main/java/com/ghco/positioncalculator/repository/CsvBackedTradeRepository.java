@@ -18,17 +18,17 @@ import java.util.TimeZone;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class CsvBasedTradeRepository implements TradeRepository {
+public class CsvBackedTradeRepository implements TradeRepository {
 
     private final Object TRADE_DATA_MONITOR_OBJECT = new Object();
 
     private final List<Trade> allTrades;
 
-    public CsvBasedTradeRepository(@NonNull final File excelFile) {
+    public CsvBackedTradeRepository(@NonNull final File excelFile) {
         allTrades = readCsvFile(excelFile);
     }
 
-    public CsvBasedTradeRepository(@NonNull final List<Trade> allTrades) {
+    public CsvBackedTradeRepository(@NonNull final List<Trade> allTrades) {
         this.allTrades = allTrades;
     }
 
