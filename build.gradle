@@ -1,0 +1,36 @@
+plugins {
+    id 'org.springframework.boot' version '2.6.5'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
+}
+
+group = 'com.ghco'
+version = '0.0.1'
+sourceCompatibility = '11'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web:2.6.4'
+    implementation 'org.apache.poi:poi:5.2.0'
+    implementation 'org.apache.poi:poi-ooxml:5.2.0'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.13.2'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.13.2'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.13.2'
+    implementation 'com.fasterxml.jackson.module:jackson-module-parameter-names:2.13.2'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.13.2'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.2'
+    implementation 'javax.validation:validation-api:2.0.1.Final'
+
+    compileOnly 'org.projectlombok:lombok:1.18.22'
+    annotationProcessor 'org.projectlombok:lombok:1.18.22'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.6.4'
+}
