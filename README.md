@@ -1,7 +1,5 @@
 # Position Calculator
 
-Candidate Name: Akintunde Olanrewaju, <eaolanrewaju@gmail.com>
-
 <br/>
 
 #### TL;DR: The application generated [this](https://docs.google.com/document/d/1-_rGSQW2lj9l4En2u0qTbFypkjeWP_DW4mqbFM6ips8/edit?usp=sharing) position aggregation result with the trade dataset share.
@@ -25,6 +23,6 @@ Candidate Name: Akintunde Olanrewaju, <eaolanrewaju@gmail.com>
 
 <br/>
 
-### What could be better if I had more time
+### What could be better
 - If the assumption that the trade prices are in the same currency is wrong, I could have converted the trade prices to the same currency using FX rate in my computation;
 - As opposed to loading the dataset data everytime the application is restarted, I could have persisted the trade data in a database (once and for all time) and leverage SQL queries for SELECT and GROUP queries used. This will make the application restart and load data faster.
